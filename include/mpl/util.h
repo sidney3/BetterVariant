@@ -31,16 +31,16 @@ template<typename F, typename TypeList>
 struct extract_input_type;
 
 template<typename F, typename Head, typename ... Rest>
-struct extract_input_type<F, mpl::type_list<Head, Rest...>>
+struct extract_input_type<F, mpl::list<Head, Rest...>>
 {
     using type = 
-        std::conditional<takes_T<F, Head>::type::value,
+        std::conditional<takes_T<F, Head>::value,
             Head,
-            typename extract_input_type<F, Rest...>::type>::type;
+            typename extract_input_type<F, list<Rest...>>::type>::type;
 };
 
 template<typename F>
-struct extract_input_type<F, mpl::type_list<>>
+struct extract_input_type<F, mpl::list<>>
 {
     using type = type_not_found;
 };

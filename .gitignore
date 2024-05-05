@@ -8,5 +8,5 @@ compile_commands.json
 ~
 *.o
 .DS_STORE
-.dSYM
+*.dSYM
 build

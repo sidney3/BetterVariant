@@ -7,32 +7,29 @@
 /*
     Utility functions for a compile time map
 
-    This is implemented using a type_list of pairs
+    This is implemented using a list of pairs
 */
 namespace mpl
 {
-template<typename KVPairs>
-struct map;
-
-template<typename ... Pairs>
-struct map<type_list<Pairs...>>
+template<typename ... KVPairs>
+struct map
 {};
 
 template<typename Map, typename T>
 struct at;
 
 template<typename T, typename  HeadPair, typename ... Rest>
-struct at<map<type_list<HeadPair, Rest...>>, T>
+struct at<map<HeadPair, Rest...>, T>
 {
     using type = std::conditional<
         std::is_same_v<typename HeadPair::first, T>,
         typename HeadPair::second,
-        typename at<T, map<type_list<Rest...>>>::type
+        typename at<T, map<Rest...>>::type
     >::type;
 };
 
 template<typename T>
-struct at<map<type_list<>>, T>
+struct at<map<>, T>
 {
     using type = type_not_found;
 };
@@ -55,9 +52,7 @@ struct insert<map<Pairs...>, K, V>
     static_assert(!contains<K, map<Pairs...>>::value, 
             "no repeat values allowed in compile time map");
 
-
-
-
+    using type = map<Pairs..., pair<K,V>>;
 };
 
 }
