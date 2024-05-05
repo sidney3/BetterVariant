@@ -3,11 +3,9 @@
 ## More Ergonomic Use
 
 ```cpp
-using sidney3::xvariant;
+sidney3::variant<int, double, string> b = "Hello World";
 
-xvariant<int, double, string> b = "Hello World";
-
-b >> 
+(b >> 
     [](const int obj)
     {
         std::cout << "object is an integer\n";
@@ -19,5 +17,29 @@ b >>
     [](const string obj)
     {
         std::cout << "object is a string\n";
-    }();
+    })();
+```
+
+```bash
+Object is a string
+```
+
+```cpp
+sidney3::variant<int, double, string> b = "Hello World";
+
+auto fn = b >> 
+    [](const int obj)
+    {
+        std::cout << "object is an integer\n";
+    },
+    [](const double obj)
+    {
+        std::cout << "object is a double\n";
+    },
+    [](const string obj)
+    {
+        std::cout << "object is a string\n";
+    };
+
+fn();
 ```
