@@ -26,8 +26,8 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
           typename mpl::pop_back<mpl::list<Ts...>>::type>;
 
     // return type of our functor will be the return type of the first function in the list
-    using return_type = decltype(std::declval<typename mpl::head<mpl::list<Fs...>>::type>()
-                                (std::declval<typename mpl::head<mpl::list<Ts...>>::type>()));
+    /* using return_type = decltype(std::declval<typename mpl::head<mpl::list<Fs...>>::type>() */
+    /*                             (std::declval<typename mpl::head<mpl::list<Ts...>>::type>())); */
 
     template<typename ... Fns>
     explicit variant_functor(const XVariant* variant, Fns&&... fns)
@@ -48,7 +48,7 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
     template<typename Head, typename ... Rest>
     struct call_operator_impl<mpl::list<Head, Rest...>>
     {
-        return_type apply(const self* _this)
+        decltype(auto) apply(const self* _this)
         {
             if constexpr (std::holds_alternative<Head>(_this->variant))
             {
@@ -62,30 +62,24 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
             
         }
     };
-    return_type operator()()
+    decltype(auto) operator()()
     {
         static_assert(mpl::equals<typename XVariant::types, mpl::list<Ts...>>::value, "all cases must be met");
         return call_operator_impl<mpl::list<Ts...>>::apply(this);
     }
 
     template<typename F>
-    variant_functor<
-        XVariant, 
-        mpl::list<Fs..., F>, 
-        mpl::list<
-            Ts..., 
-            typename mpl::extract_input_type<
-                F, 
-                typename XVariant::types>::type
-            >
-        >
+    decltype(auto)
     operator||(F&& func)
     {
-        using F_type = mpl::extract_input_type<F, typename XVariant::types>::type;
-        using F_return = decltype(std::declval<F>(std::declval<F_type>()));
+        using F_args = mpl::function_traits<F>::type;
+        static_assert(mpl::size<F_args>::value == 1, "lambda inputted must take a single argument");
 
-        static_assert(std::is_same_v<F_return, return_type>,
-                "return type of inputted function must match that of other functions");
+        using F_type = mpl::head<F_args>::type;
+        /* using F_return = decltype(std::declval<F>(std::declval<F_type>())); */
+        /*  */
+        /* static_assert(std::is_same_v<F_return, return_type>, */
+        /*         "return type of inputted function must match that of other functions"); */
         static_assert(!std::is_same_v<F_type, mpl::type_not_found>, 
             "input to pattern matching statement should be a single argument\
             function taking one of the variant types");
@@ -125,18 +119,18 @@ struct xvariant : BaseVariantWrapper
 
 
     template<typename F>
-    variant_functor<
-        self, 
-        mpl::list<F>, 
-        mpl::list<typename mpl::extract_input_type<F,TypesList>::type>
-    >
+    decltype(auto)
     operator>>(F&& fn)
     {
+        using F_args = mpl::function_traits<F>::type;
+        static_assert(mpl::size<F_args>::value == 1,
+                "lambda inputted must take a single argument");
+        using F_type = mpl::head<F_args>::type;
         using return_type = 
             variant_functor<
                 self, 
                 mpl::list<F>, 
-                mpl::list<typename mpl::extract_input_type<F,TypesList>::type>
+                mpl::list<F_type>
             >;
         static_assert(std::is_same_v<decltype(this), self>);
         return return_type{this, std::forward<F>(fn)};

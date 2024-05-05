@@ -14,11 +14,12 @@ template<
     typename = decltype(std::declval<F>()(std::declval<T>()))>
 struct takes_T 
 {
-    constexpr static bool value = true;
+    constexpr static bool value = 
+        std::is_same_v<decltype(std::declval<F>()(std::declval<T>())), T>;
 };
 
 template<typename F, typename T>
-struct takes_T<F,T,void>
+struct takes_T<F,T,none_type>
 {
     constexpr static bool value = false;
 };
@@ -39,9 +40,27 @@ struct extract_input_type<F, mpl::list<Head, Rest...>>
             typename extract_input_type<F, list<Rest...>>::type>::type;
 };
 
-template<typename F>
-struct extract_input_type<F, mpl::list<>>
+/*
+Not 100% complete, but good enough
+*/
+template <typename T>
+struct function_traits
+    : public function_traits<decltype(&T::operator())>
+{};
+
+template <typename ClassType, typename ReturnType, typename... Args>
+struct function_traits<ReturnType(ClassType::*)(Args...) const>
+    : public function_traits<ReturnType(Args...)>
+{};
+
+template<typename ReturnType, typename...Args>
+struct function_traits<ReturnType(*)(Args...)>
+    : public function_traits<ReturnType(Args...)>
+{};
+
+template<typename ReturnType, typename...Args>
+struct function_traits<ReturnType(Args...)>
 {
-    using type = type_not_found;
+    using type = list<Args...>;
 };
 }
