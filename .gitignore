@@ -1,0 +1,12 @@
+*
+!*.*
+!*/
+!Makefile
+
+compile_commands.json
+.cache
+~
+*.o
+.DS_STORE
+.dSYM
+build
