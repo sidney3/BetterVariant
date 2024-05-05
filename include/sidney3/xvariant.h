@@ -26,46 +26,71 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
           typename mpl::pop_back<mpl::list<Ts...>>::type>;
 
     // return type of our functor will be the return type of the first function in the list
-    /* using return_type = decltype(std::declval<typename mpl::head<mpl::list<Fs...>>::type>() */
-    /*                             (std::declval<typename mpl::head<mpl::list<Ts...>>::type>())); */
+    using return_type = decltype(std::declval<typename mpl::head<mpl::list<Fs...>>::type>()
+                                (std::declval<typename mpl::head<mpl::list<Ts...>>::type>()));
 
     template<typename ... Fns>
     explicit variant_functor(const XVariant* variant, Fns&&... fns)
-        : variant(variant), functions(std::make_tuple(fns...))
+        : variant(variant), functions(std::forward<Fns>(fns)...)
     {}
 
-    template<typename Fns, typename F, long ... Indices>
-    static self make_variant_functor(const XVariant* variant, Fns&& fns, F&& f, std::index_sequence<Indices...>)
+    template<typename Fns, typename F, size_t ... Indices>
+    decltype(auto) make_variant_functor(const XVariant* variant, Fns&& fns, F&& f, std::index_sequence<Indices...>)
     {
-        return self{variant, 
-                    std::forward<Fns>(std::get<Indices>(fns))..., 
+        using F_type = mpl::head<
+            typename mpl::function_traits<F>::type
+            >::type;
+        using return_type = variant_functor<XVariant,
+              mpl::list<Fs..., F>,
+              mpl::list<Ts..., F_type>
+              >;
+        /* using tl = mpl::list<decltype(std::get<Indices>(fns))...>; */
+
+        /* static_assert(std::is_same_v<tl, mpl::list<int,double>>); */
+        return return_type{variant, 
+                    std::get<Indices>(fns)..., 
                     std::forward<F>(f)};
     }
 
-    template<typename TypeList>
+
+    template<typename TypeList, typename FunctionsList>
     struct call_operator_impl;
 
-    template<typename Head, typename ... Rest>
-    struct call_operator_impl<mpl::list<Head, Rest...>>
+
+    template<typename THead, typename ... TRest,
+             typename FHead, typename ... FRest>
+    struct call_operator_impl<
+        mpl::list<THead, TRest...>, 
+        mpl::list<FHead, FRest...>
+        >
     {
-        decltype(auto) apply(const self* _this)
+        static return_type apply(self* _this)
         {
-            if constexpr (std::holds_alternative<Head>(_this->variant))
+            if(std::holds_alternative<THead>(*_this->variant))
             {
-                return std::get<Head>(_this->functions)
-                        (std::get<Head>(_this->variant));
+                return mpl::get<FHead>(_this->functions)
+                        (std::get<THead>(*_this->variant));
             }
             else
             {
-                return call_operator_impl<mpl::list<Rest...>>::apply(_this->variant);
+                return call_operator_impl<mpl::list<TRest...>, mpl::list<FRest...>>::apply(_this);
             }
             
+        }
+    };
+
+    template<>
+    struct call_operator_impl<mpl::list<>, mpl::list<>>
+    {
+        static return_type apply(self* _this)
+        {
+    
         }
     };
     decltype(auto) operator()()
     {
         static_assert(mpl::equals<typename XVariant::types, mpl::list<Ts...>>::value, "all cases must be met");
-        return call_operator_impl<mpl::list<Ts...>>::apply(this);
+        return call_operator_impl<mpl::list<Ts...>, mpl::list<Fs...>>::apply(this);
     }
 
     template<typename F>
@@ -86,11 +111,14 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
         static_assert(!mpl::contains<F_type, mpl::list<Ts...>>::value,
                 "this case is already covered by a function");
 
-        return make_variant_functor(variant, std::move(functions), std::forward<F>(func));
+        return make_variant_functor(variant, 
+                std::move(functions), 
+                std::forward<F>(func),
+                std::make_index_sequence<mpl::size<mpl::list<Fs...>>::value>());
     }
 private:
     const XVariant* variant; 
-    mpl::ti_tuple<Fs...> functions;
+    mpl::ti_tuple<mpl::list<Fs...>> functions;
 };
 
 struct VariantWrapper
@@ -105,7 +133,7 @@ template<
     >
 struct xvariant : BaseVariantWrapper
 {
-    using self = xvariant<BaseVariantWrapper, TypesList>;
+    using self = xvariant<TypesList, BaseVariantWrapper>;
     using types = TypesList; 
 
     // maintain compatability with base variant impl
@@ -122,7 +150,8 @@ struct xvariant : BaseVariantWrapper
     decltype(auto)
     operator>>(F&& fn)
     {
-        using F_args = mpl::function_traits<F>::type;
+        using F_ = std::remove_reference_t<F>;
+        using F_args = mpl::function_traits<F_>::type;
         static_assert(mpl::size<F_args>::value == 1,
                 "lambda inputted must take a single argument");
         using F_type = mpl::head<F_args>::type;
@@ -132,7 +161,6 @@ struct xvariant : BaseVariantWrapper
                 mpl::list<F>, 
                 mpl::list<F_type>
             >;
-        static_assert(std::is_same_v<decltype(this), self>);
         return return_type{this, std::forward<F>(fn)};
     }
 };

@@ -55,7 +55,7 @@ struct ti_tuple<list<Ts...>> : std::tuple<Ts...>
     ti_tuple(const parent& t) : parent(t) {}
     ti_tuple(parent&& t) : parent(std::move(t)) {}
 
-    using IndexMap = make_indexed_map<list<Ts...>>;
+    using IndexMap = make_indexed_map<list<Ts...>>::type;
 };
 
 template<typename Tuple, typename T, size_t ... Indices>
@@ -82,9 +82,20 @@ append(Tuple&& tuple, T&& new_elt)
 
 
 template<typename T, typename TiTuple>
-T get(TiTuple&& t)
+decltype(auto)
+get(TiTuple&& t)
 {
-    static_assert(contains<T, typename TiTuple::IndexMap>::value, "value not found");
-    return std::get<at<typename TiTuple::IndexMap, T>::type::value>(std::forward<TiTuple>(t));
+    using IndexMap = std::decay_t<TiTuple>::IndexMap;
+    static_assert(contains<IndexMap, T>::value, "value not found");
+    return std::get<at<IndexMap, T>::type::value>(std::forward<TiTuple>(t));
 }
+
+template<typename Tuple>
+struct tuple_size;
+
+template<typename ... Ts>
+struct tuple_size<ti_tuple<Ts...>>
+{
+    static constexpr size_t value = size<list<Ts...>>::value;
+};
 }

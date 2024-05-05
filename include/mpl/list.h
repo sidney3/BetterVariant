@@ -51,7 +51,7 @@ template<typename Head, typename ... Rest>
 struct size<list<Head, Rest...>>
 {
     static constexpr size_t value = 
-        1 + size<list<Rest...>>::value + 1;
+        size<list<Rest...>>::value + 1;
 };
 
 template<>
@@ -108,6 +108,23 @@ struct find_if<list<>, Comparator>
 {
     using type = type_not_found;
 };
+
+template<typename TypeList, long I>
+struct list_at;
+
+template<typename Head, typename ... Rest, long I>
+struct list_at<list<Head, Rest...>, I>
+{
+    static_assert(I < size<list<Head,Rest...>>::value);
+    using type = list_at<list<Rest...>, I - 1>::type;
+};
+
+template<typename Head, typename ... Rest>
+struct list_at<list<Head, Rest...>, 0>
+{
+    using type = Head;
+};
+
 
 template<typename TypeList>
 struct head;

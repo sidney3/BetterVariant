@@ -24,7 +24,7 @@ struct at<map<HeadPair, Rest...>, T>
     using type = std::conditional<
         std::is_same_v<typename HeadPair::first, T>,
         typename HeadPair::second,
-        typename at<T, map<Rest...>>::type
+        typename at<map<Rest...>, T>::type
     >::type;
 };
 
@@ -35,7 +35,7 @@ struct at<map<>, T>
 };
 
 
-template<typename T, typename Map>
+template<typename Map, typename T>
 struct contains
 {
     static constexpr bool value =
@@ -49,7 +49,7 @@ struct insert;
 template<typename ... Pairs, typename K, typename V>
 struct insert<map<Pairs...>, K, V>
 {
-    static_assert(!contains<K, map<Pairs...>>::value, 
+    static_assert(!contains<map<Pairs...>, K>::value, 
             "no repeat values allowed in compile time map");
 
     using type = map<Pairs..., pair<K,V>>;
