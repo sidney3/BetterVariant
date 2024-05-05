@@ -21,7 +21,7 @@ sidney3::variant<int, double, string> b = "Hello World";
 ```
 
 ```bash
-Object is a string
+>object is a string
 ```
 
 ```cpp
@@ -43,3 +43,15 @@ auto fn = b >>
 
 fn();
 ```
+```bash
+>object is a string
+```
+
+/*
+
+Interesting question: how do we want to handle references?
+
+In general -> remove the reference from the lambda
+
+What about constness?
+*/

@@ -9,13 +9,16 @@ namespace mpl
 {
 template<typename ... Ts>
 struct list
-{};
+{
+    using tag = list_tag;
+};
 template<typename TypeList, typename T>
 struct push_front;
 
 template<typename ... Ts, typename T>
 struct push_front<list<Ts...>, T>
 {
+    static_assert(std::is_same_v<typename list<Ts...>::tag, list_tag>);
     using type = list<T, Ts...>;
 };
 
@@ -25,6 +28,7 @@ struct push_back;
 template<typename ... Ts, typename T>
 struct push_back<list<Ts...>, T>
 {
+    static_assert(std::is_same_v<typename list<Ts...>::tag, list_tag>);
     using type = list<Ts..., T>;
 };
 
@@ -34,6 +38,7 @@ struct pop_back;
 template<typename Head, typename ... Rest>
 struct pop_back<list<Head, Rest...>>
 {
+    static_assert(std::is_same_v<typename list<Head, Rest...>::tag, list_tag>);
     using type = push_front<
         typename pop_back<list<Rest...>>::type, 
         Head>;
@@ -60,18 +65,18 @@ struct size<list<>>
     static constexpr size_t value = 0;
 };
 
-template<typename T, typename TypeList>
-struct contains;
+template<typename TypeList, typename T>
+struct list_contains;
 
 template<typename T, typename Head, typename ... Rest>
-struct contains<T, list<Head, Rest...>>
+struct list_contains<list<Head, Rest...>, T>
 {
     static constexpr bool value =
-        std::is_same_v<T, Head> || contains<T, list<Rest...>>::value;
+        std::is_same_v<T, Head> || list_contains<list<Rest...>, T>::value;
 };
 
 template<typename T>
-struct contains<T, list<>>
+struct list_contains<list<>, T>
 {
     static constexpr bool value = false;
 };
@@ -84,7 +89,7 @@ struct equals<list<Ts...>, list<Us...>>
 {
     static constexpr bool value =
         size<list<Ts...>>::value == size<list<Us...>>::value
-        && (contains<Ts, list<Us...>>::value &&...);
+        && (list_contains<list<Us...>, Ts>::value &&...);
 };
 
 template<typename TypeList, typename Comparator>

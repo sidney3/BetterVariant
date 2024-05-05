@@ -49,6 +49,7 @@ struct ti_tuple<list<Ts...>> : std::tuple<Ts...>
     using parent = std::tuple<Ts...>;
     using parent::parent;
     using types = list<Ts...>;
+    using tag = tuple_tag;
 
     // explicitly declare copy and move constructors,
     // as these do not get inherited
@@ -74,6 +75,7 @@ template<typename Tuple, typename T>
 ti_tuple<typename push_back<typename Tuple::types, T>::type>
 append(Tuple&& tuple, T&& new_elt)
 {
+    static_assert(std::is_same_v<typename Tuple::tag, tuple_tag>);
     return append_impl(
             std::forward<Tuple>(tuple),
             std::forward<T>(new_elt), 
@@ -85,9 +87,12 @@ template<typename T, typename TiTuple>
 decltype(auto)
 get(TiTuple&& t)
 {
-    using IndexMap = std::decay_t<TiTuple>::IndexMap;
-    static_assert(contains<IndexMap, T>::value, "value not found");
-    return std::get<at<IndexMap, T>::type::value>(std::forward<TiTuple>(t));
+    using Tuple = std::decay_t<TiTuple>;
+    static_assert(std::is_same_v<typename Tuple::tag, tuple_tag>);
+    static_assert(contains<typename Tuple::IndexMap, T>::value, "value not found");
+    constexpr size_t index = at<typename Tuple::IndexMap, T>::type::value;
+    static_assert(index < 2);
+    return std::get<index>(t);
 }
 
 template<typename Tuple>

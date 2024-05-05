@@ -13,7 +13,9 @@ namespace mpl
 {
 template<typename ... KVPairs>
 struct map
-{};
+{
+    using tag = map_tag;
+};
 
 template<typename Map, typename T>
 struct at;
@@ -21,6 +23,9 @@ struct at;
 template<typename T, typename  HeadPair, typename ... Rest>
 struct at<map<HeadPair, Rest...>, T>
 {
+    static_assert(std::is_same_v<typename map<HeadPair, Rest...>::tag, map_tag>);
+    static_assert(std::is_same_v<typename HeadPair::tag, pair_tag>);
+
     using type = std::conditional<
         std::is_same_v<typename HeadPair::first, T>,
         typename HeadPair::second,
@@ -38,6 +43,7 @@ struct at<map<>, T>
 template<typename Map, typename T>
 struct contains
 {
+    static_assert(std::is_same_v<typename Map::tag, map_tag>);
     static constexpr bool value =
         !std::is_same_v<
             typename at<Map, T>::type, 
@@ -49,6 +55,7 @@ struct insert;
 template<typename ... Pairs, typename K, typename V>
 struct insert<map<Pairs...>, K, V>
 {
+    static_assert(((std::is_same_v<typename Pairs::tag, pair_tag>)&&...));
     static_assert(!contains<map<Pairs...>, K>::value, 
             "no repeat values allowed in compile time map");
 
