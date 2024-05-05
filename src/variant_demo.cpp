@@ -4,18 +4,17 @@
 
 int main()
 {
-    sidney3::variant<int, std::string> v = "asf";
+    sidney3::variant<int, std::string> v = "Hello World!";
 
-    (v >> 
-        [](int& obj)
+    auto fn = v >> 
+        [](const int& obj)
         {
             std::cout << "contains an integer " << obj << "\n";
         }
-        || [](std::string obj)
+        || [](const std::string& obj)
         {
             std::cout << "contains a string " << obj << "\n";
-        })();
+        };
 
-
-    static_assert(std::is_same_v<std::decay_t<const int&>, int>);
+    fn();
 }

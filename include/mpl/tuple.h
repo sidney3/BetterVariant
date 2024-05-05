@@ -9,9 +9,6 @@
    std::get<U>(MyTuple))
    
    As we index into the tuple by type we cannot have repeated types.
-
-   We also add an "append" member where we can generate a new tuple from an 
-   existing tuple (with move construction)
 */
 namespace mpl
 {

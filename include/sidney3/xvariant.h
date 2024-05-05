@@ -4,13 +4,6 @@
 #include <mpl/tuple.h>
 #include <variant>
 
-
-/*
-How do we want to store the functions? We want to be able
-to index them by type:
-
-
-*/
 namespace sidney3{
     
 template<typename XVariant, typename FunctionsList, typename TypesList>
@@ -19,16 +12,10 @@ struct variant_functor;
 template<typename XVariant, typename ... Fs, typename ... Ts>
 struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
 {
-    /* static_assert(!mpl::list_contains<int&, mpl::list<Ts...>>::value); */
-
     using self = variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>;     
-    
-    using predecessor = variant_functor<XVariant, 
-          typename mpl::pop_back<mpl::list<Fs...>>::type, 
-          typename mpl::pop_back<mpl::list<Ts...>>::type>;
 
     // return type of our functor will be the return type of the first function in the list
-    
+    // after adding each new function, we check that its return type is the same as this
     using return_type = mpl::function_traits<typename mpl::head<mpl::list<Fs...>>::type>::return_type;
 
     template<typename ... Fns>
@@ -36,6 +23,11 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
         : variant(variant), functions(std::forward<Fns>(fns)...)
     {}
 
+    /*
+        Use template argument deduction to traverse our Types / Functions list when our
+        metafunctor gets invoked. This is because we can only know at runtime which
+        type our variant holds.
+    */
     template<typename TypeList, typename FunctionsList>
     struct call_operator_impl;
 
@@ -63,11 +55,17 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
         }
     };
 
-    // give template definition to make compiler happy
+    /*
+        Although we will never reach this point (as we assert in our call operator that we have all types met),
+        this struct definition will still get created by the compiler, and so it must be defined (even though
+        it doesn't make sense).
+    */
     template<>
     struct call_operator_impl<mpl::list<>, mpl::list<>>
     {
-        static return_type apply(self*) {}
+        static return_type apply(self*) {
+            __builtin_unreachable();
+        }
     };
 
     return_type operator()()
@@ -76,6 +74,9 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
         return call_operator_impl<mpl::list<Ts...>, mpl::list<Fs...>>::apply(this);
     }
 
+    /*
+    Takes an already existing metafunctor and add another lambda to it. Most of the bulk here is just assertions
+    */
     template<typename F>
     decltype(auto)
     operator||(F&& func)
@@ -135,7 +136,12 @@ struct xvariant : BaseVariantWrapper
         : BaseVariantWrapper(v)
     {}
 
+    /*
+    takes a variant and a single lambda and spits out the initial metafunctor
 
+    Note that as >> is higher precedence than ||, we know that this will
+    always get evaluated first (as || operator is not defined between lambdas)
+    */
     template<typename F>
     decltype(auto)
     operator>>(F&& fn)
@@ -144,7 +150,7 @@ struct xvariant : BaseVariantWrapper
         using F_args = mpl::function_traits<F_>::type;
         static_assert(mpl::size<F_args>::value == 1,
                 "lambda inputted must take a single argument");
-        using F_type = std::decay_t<typename mpl::head<F_args>::type>;
+        using F_type = std::remove_reference_t<typename mpl::head<F_args>::type>;
         using return_type = 
             variant_functor<
                 self, 

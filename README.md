@@ -1,7 +1,6 @@
-# A Better C++ Variant
+# A More Ergomic C++ Variant
 
-## More Ergonomic Use
-
+We offer the pattern matching syntax found in languages like OCaml, used as follows: 
 ```cpp
 sidney3::variant<int, double, string> b = "Hello World";
 
@@ -47,11 +46,6 @@ fn();
 >object is a string
 ```
 
-/*
+The `>>` operator joins a `variant` with any callable object, and then further `||` operators will join with this callable to cover all of the cases of the `variant`. The functor cannot be called unless all cases are covered (will not compile).
 
-Interesting question: how do we want to handle references?
-
-In general -> remove the reference from the lambda
-
-What about constness?
-*/
+This is functionally equivalent to `std::visit`, while being more ergonomic.
