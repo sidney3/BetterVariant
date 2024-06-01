@@ -11,4 +11,5 @@ set(HEADER_FILES include/sidney3/xvariant.h
 add_compile_options(-Wall -Wextra -Wpedantic -std=c++20)
 
 add_executable(Demo src/variant_demo.cpp ${HEADER_FILES})
+add_executable(Test src/test.cpp ${HEADER_FILES})
 

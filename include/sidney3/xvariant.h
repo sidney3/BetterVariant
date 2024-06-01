@@ -87,8 +87,6 @@ struct variant_functor<XVariant, mpl::list<Fs...>, mpl::list<Ts...>>
         using raw_F_type = typename mpl::head<F_args>::type;
         using F_type = std::decay_t<raw_F_type>;
 
-        static_assert(std::is_same_v<F_type, int> || std::is_same_v<F_type, std::string>);
-
         using F_return = decltype(std::declval<F>()(std::declval<raw_F_type>()));
         
         static_assert(std::is_same_v<F_return, return_type>,

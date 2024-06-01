@@ -92,6 +92,10 @@ struct equals<list<Ts...>, list<Us...>>
         && (list_contains<list<Us...>, Ts>::value &&...);
 };
 
+static_assert(mpl::equals<list<int,int>, list<int,int>>::value);
+static_assert(!mpl::equals<list<int,int,double>, list<int,int>>::value);
+static_assert(!mpl::equals<list<int,int>, list<int,int,double>>::value);
+
 template<typename TypeList, typename Comparator>
 struct find_if;
 
