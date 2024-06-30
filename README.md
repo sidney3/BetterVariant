@@ -104,3 +104,9 @@ std::visit(overload{
 }, v);
 ```
 
+
+## Impl
+
+Each functor object contains a unique tuple of its elements
+
+Unique tuple can also be constructed from a smaller unique tuple and the missing elements (provided in order).

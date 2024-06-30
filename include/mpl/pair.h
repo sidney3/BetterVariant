@@ -9,7 +9,6 @@ namespace mpl
 template<typename T, typename U>
 struct pair
 {
-    using tag = pair_tag;
     using first = T;
     using second = U;
 };

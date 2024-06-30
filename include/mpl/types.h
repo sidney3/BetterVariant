@@ -1,10 +1,5 @@
 #pragma once
-namespace mpl
+namespace mpl::types
 {
-struct type_not_found{};
-struct none_type{};
-struct list_tag{};
-struct map_tag{};
-struct pair_tag{};
-struct tuple_tag{};
+struct type_not_found;
 }
