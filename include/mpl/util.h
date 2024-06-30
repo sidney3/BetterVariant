@@ -6,8 +6,34 @@
 
 namespace mpl
 {
+/*
+    Returns if T is one of Ts...
+*/
 template<typename T, typename ... Ts>
 struct contains;
+
+/*
+    Returns bool if each T in Ts... is distinct
+*/
+template<typename ... Ts>
+struct is_unique;
+
+/*
+    Returns the index of T in Ts...
+
+    Will not compile if T is not in Ts...
+*/
+template<typename T, typename ... Ts>
+struct index_of;
+/*
+    Returns the first type T in Ts... satisfying
+    the template predicate
+*/
+template<
+    template <typename> typename Predicate,
+    typename ... Ts>
+struct find_if;
+
 
 template<typename T, typename Head, typename ... Rest>
 struct contains<T, Head, Rest...>
@@ -29,9 +55,6 @@ struct contains<T>
 /*
     Faster way to do this is to sort the types by typeid and then determine uniqueness in O(n) but this is rarely used for large types like that...
 */
-template<typename ... Ts>
-struct is_unique;
-
 template<typename Head, typename ... Rest>
 struct is_unique<Head, Rest...>
 {
@@ -74,4 +97,21 @@ struct index_of
             "target not found");
     static constexpr long value = impl_res::value;
 };
+template<
+    template <typename> typename Predicate,
+    typename Head, typename ... Rest>
+struct find_if<Predicate, Head, Rest...>
+{
+    using type = std::conditional_t<
+        Predicate<Head>::value,
+        Head,
+        typename find_if<Predicate, Rest...>::type
+        >;
+};
+template<template <typename> typename Predicate>
+struct find_if<Predicate>
+{
+    using type = types::type_not_found;
+};
+
 } // namespace mpl

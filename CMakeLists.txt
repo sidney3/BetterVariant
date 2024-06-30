@@ -18,6 +18,8 @@ set(HEADER_FILES include/sidney3/variant.h
                 include/mpl/map.h
                 include/mpl/test_map.h
                 include/mpl/test_util.h
+                include/mpl/functional.h
+                include/mpl/test_functional.h
 
                 include/containers/unique_tuple.h
                 include/containers/test_unique_tuple.h

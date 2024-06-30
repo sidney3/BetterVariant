@@ -6,11 +6,14 @@
 #include <mpl/test_map.h>
 
 #include <containers/test_variable_vector.h>
+
+#include <sidney3/test_functor.h>
 /* #include <mpl/test_unique_tuple.h> */
 
 int main()
 {
     test_variable_vector();
+    test_functor();
 
     /* sidney3::variant<int, std::string> v = "Hello World!"; */
     /*  */
