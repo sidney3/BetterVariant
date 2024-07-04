@@ -62,6 +62,7 @@ struct unary_traits
     using return_type = unary_traits_impl<F, is_auto>::return_type;
 };
 
+
 /*
     Returns true if F is a unary function that can be invoked on the inputted
     types without implicit conversion
