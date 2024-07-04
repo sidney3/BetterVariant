@@ -6,51 +6,28 @@ We offer the pattern matching syntax found in languages like OCaml, used as foll
 ```cpp
 sidney3::variant<int, double, string> b = "Hello World";
 
-(b >> 
+b ||
     [](const int obj)
     {
         std::cout << "object is an integer\n";
-    }
-    >> [](const double obj)
+    } 
+    [](const double obj)
     {
         std::cout << "object is a double\n";
-    }
-    >> [](const string obj)
-    {
-        std::cout << "object is a string\n";
-    })();
-```
-
-```bash
->object is a string
-```
-
-```cpp
-sidney3::variant<int, double, string> b = "Hello World";
-
-auto fn = b  
-    >> [](const int obj)
-    {
-        std::cout << "object is an integer\n";
-    }
-    >> [](const double obj)
-    {
-        std::cout << "object is a double\n";
-    }
-    >> [](const string obj)
+    } 
+    | [](const string obj)
     {
         std::cout << "object is a string\n";
     };
-
-fn();
 ```
+
 ```bash
 >object is a string
 ```
 
 ## Additional Details
 
-The `>>` operator joins a `variant` with any callable object, and then further `||` operators will join with this callable to cover all of the cases of the `variant`. The functor cannot be called unless all cases are covered (will not compile).
+The `|` operator joins two callables into an `overloaded` type, and the `||` operator joins a `variant<Ts...>` with a callable type that covers all `Ts...`.
 
 This is functionally equivalent to `std::visit`, while being more ergonomic. Also, note that we return a function, rather than forcing the operation to be immediately invoked. Note however that the functor will carry a pointer to the original variant, and so lifetimes are a potential concern.
 
@@ -103,6 +80,3 @@ std::visit(overload{
     };
 }, v);
 ```
-
-
-## Impl
