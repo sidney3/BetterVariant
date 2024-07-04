@@ -9,6 +9,7 @@
 template<typename VariantList, typename CurrList, typename Functor>
 struct visit_impl;
 
+
 template<
     typename ... Ts,
     typename Head, typename ... Rest,
@@ -19,7 +20,7 @@ struct visit_impl<list<Ts...>, list<Head, Rest...>, Functor>
     static typename 
     sidney3::FunctorTypeTraits<Functor>::return_type
     apply(
-            const sidney3::variant<Ts...>& variant, Functor fn)
+            sidney3::variant<Ts...>& variant, Functor fn)
     {
         if(std::holds_alternative<Head>(variant))
         {
@@ -32,6 +33,7 @@ struct visit_impl<list<Ts...>, list<Head, Rest...>, Functor>
         }
     }
 };
+
 template<typename ... Ts, typename Functor>
 struct visit_impl<list<Ts...>, list<>, Functor>
 {
@@ -45,11 +47,21 @@ struct visit_impl<list<Ts...>, list<>, Functor>
 };
 
 
+
 template<typename ... Ts, typename Functor>
     requires std::is_same_v<
             typename Functor::tag, 
             sidney3::functor_tag>
-auto visit( const sidney3::variant<Ts...>& variant, Functor fn)
+auto visit(sidney3::variant<Ts...>& variant, Functor&& fn)
+{
+    return visit_impl<list<Ts...>, list<Ts...>, Functor>::apply(variant, std::forward<Functor>(fn));
+}
+
+template<typename ... Ts, typename Functor>
+    requires std::is_same_v<
+            typename Functor::tag, 
+            sidney3::functor_tag>
+auto visit(sidney3::variant<Ts...>& variant, Functor& fn)
 {
     return visit_impl<list<Ts...>, list<Ts...>, Functor>::apply(variant, std::forward<Functor>(fn));
 }

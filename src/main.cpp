@@ -4,6 +4,7 @@
 #include <mpl/test_list_traits.h>
 #include <mpl/test_util.h>
 #include <mpl/test_map.h>
+#include <mpl/test_functional.h>
 
 #include <containers/test_template_union.h>
 

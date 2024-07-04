@@ -12,15 +12,15 @@ void test_visit()
     sidney3::variant<int, double, char> v = 'a';
 
     auto fn = 
-        [](int)
+        [](int const)
         {
             return false;
         }
-        | [](double)
+        | [](double&)
         {
             return false;
         }
-        | [](char c)
+        | [](char& c)
         {
             return c == exp_char;
         };
