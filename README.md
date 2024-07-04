@@ -11,7 +11,7 @@ b ||
     {
         std::cout << "object is an integer\n";
     } 
-    [](const double obj)
+    | [](const double obj)
     {
         std::cout << "object is a double\n";
     } 
@@ -80,3 +80,7 @@ std::visit(overload{
     };
 }, v);
 ```
+
+## Extra components
+
+Because we are doing non-trivial template metaprogramming (i.e. extracting arguments, return values from callable types), we build out a seperate library `mpl`. The important files in this are `functional.h` and `list_traits.h` that offer utility for working with function types and list types, respectively.
