@@ -2,6 +2,7 @@
 #include <mpl/list_traits.h>
 #include <type_traits>
 #include <tuple>
+#include <mpl/list.h>
 
 using namespace mpl;
 using std::tuple;
@@ -75,5 +76,15 @@ static_assert(list_traits<tuple>::equals<
                 >::value);
 
 /*
-
+Test prefix_predicate
 */
+
+using l1 = list<int,int,double,float>;
+using l2 = list<int,int,double>;
+using l3 = list<int,double,float>;
+
+static_assert(list_traits<list>::prefix_predicate<std::is_same,l2,l1>::value);
+static_assert(!list_traits<list>::prefix_predicate<std::is_same,l1,l2>::value);
+static_assert(list_traits<list>::prefix_predicate<std::is_same,l1,l1>::value);
+static_assert(!list_traits<list>::prefix_predicate<std::is_same,l3,l1>::value);
+static_assert(list_traits<list>::prefix_predicate<std::is_same,list<>,l1>::value);

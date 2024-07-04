@@ -1,17 +1,46 @@
 #pragma once
 #include <vector>
 #include <mpl/util.h>
+#include <mpl/list.h>
 
-namespace containers
+namespace containers::igored
 {
-template<typename ... Ts>
-struct variable_vector : std::vector<std::variant<Ts...>>
+/*
+   A vector that can be indexed by type: think a std::tuple where
+   we can use get<int> to access the int member of the tuple.
+
+    Critically, this struct wants to be efficient to move from.
+    We expect many of these vectors that (A) contain different
+    elements but (B) want to be constructed from each other.
+
+    So we put in the definition of each such vector the FinalVariant
+    that we expect it to hold. An example:
+
+    If we have a variable_vector<char,int> and a 
+    variable_vector<char,int,long long>, the underlying type for
+    these two vectors is fundamentally different 
+
+    (std::variant<char,int> versus std::variant<char,int,long long>)
+
+    So one cannot be constructed from the other. Therefore, to
+    allow this construction, we place in the type definition the
+    largest possible variant that we expect (in the above case
+    std::variant<char,int,long long>) to faciliate move construction.
+*/
+template<typename FinalVariant, typename ... CurrValues>
+struct variable_vector;
+
+/* template<typename ... CurrValues> */
+/* struct variable_vector<CurrValues...> : variable_vector<list<CurrValues...>, CurrValues...>  */
+/* {}; */
+
+template<typename ... Ts, typename ... CurrValues>
+struct variable_vector<list<Ts...>, CurrValues...> : std::vector<std::variant<Ts...>>
 {
     static_assert(mpl::is_unique<Ts...>::value, 
             "variable vector can index by type and so type arguments \
             mut be distinct");
     using BaseT = std::vector<std::variant<Ts...>>;
-    using BaseT::emplace_back;
     using BaseT::operator[];
 
     variable_vector() = default;
@@ -27,16 +56,25 @@ struct variable_vector : std::vector<std::variant<Ts...>>
     void init_parent()
     {}
 
+    template<typename A, typename C>
+    struct binary_is_constructible
+    {
+        static constexpr bool value = std::is_constructible_v<C,A>;
+    };
     template<typename ... Us>
-        requires ( std::is_constructible_v<Ts,Us>&&... )
+        requires(std::is_constructible_v<CurrValues, Us>&&...)
     variable_vector(Us&&... us)
     {
         init_parent(std::forward<Us>(us)...);
     }
-
-    variable_vector(variable_vector<Ts...>&& rhs)
-        : BaseT{std::move(static_cast<BaseT>(rhs))}
-    {}
+    //@todo add some nice assertion here to check if this
+    // is actually a legal construction
+    template<typename ... Us, typename ... Rest>
+    variable_vector(variable_vector<Us...>&& rhs, Rest&&... rest)
+        : BaseT(std::move(static_cast<BaseT>(rhs)))
+    {
+        init_parent(std::forward<Rest>(rest)...);
+    }
 };
 template<typename Target, 
     typename VariableVector, 
@@ -67,13 +105,12 @@ struct get_impl<Target, variable_vector<Ts...>, CurrIndex, Head, Rest...>
     }
 };
 
-
-template<typename T, typename ... Ts>
-T &get(variable_vector<Ts...>& vec)
+template<typename T, typename BaseVariant, typename ... Ts>
+T &get(variable_vector<BaseVariant, Ts...>& vec)
 {
     static_assert(mpl::contains<T, Ts...>::value, 
             "get called on a nonexistent type");
     // get_impl returns a std::variant that we then get from again...
-    return std::get<T>(get_impl<T, variable_vector<Ts...>, 0, Ts...>::apply(vec));
+    return std::get<T>(get_impl<T, variable_vector<BaseVariant, Ts...>, 0, Ts...>::apply(vec));
 }
 } // namespace containers

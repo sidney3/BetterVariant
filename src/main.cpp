@@ -5,27 +5,17 @@
 #include <mpl/test_util.h>
 #include <mpl/test_map.h>
 
-#include <containers/test_variable_vector.h>
+#include <containers/test_template_union.h>
 
+#include <sidney3/test_visit.h>
 #include <sidney3/test_functor.h>
-/* #include <mpl/test_unique_tuple.h> */
+#include <sidney3/test_variant.h>
 
 int main()
 {
-    test_variable_vector();
+    test_template_union();
     test_functor();
+    test_visit();
+    test_variant();
 
-    /* sidney3::variant<int, std::string> v = "Hello World!"; */
-    /*  */
-    /* auto fn = v >>  */
-    /*     [](const int& obj) */
-    /*     { */
-    /*         std::cout << "contains an integer " << obj << "\n"; */
-    /*     } */
-    /*     || [](const std::string& obj) */
-    /*     { */
-    /*         std::cout << "contains a string " << obj << "\n"; */
-    /*     }; */
-    /*  */
-    /* fn(); */
 }

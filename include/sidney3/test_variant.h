@@ -1,3 +1,3 @@
 #pragma once
-void variant_run_all();
+void test_variant();
 

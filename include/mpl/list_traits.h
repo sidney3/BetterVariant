@@ -21,6 +21,14 @@ struct push_front<List<Ts...>, T>
     using type = List<T, Ts...>;
 };
 
+template<typename List1, typename List2>
+struct concat;
+template<typename ... Ts, typename ... Us>
+struct concat<List<Ts...>, List<Us...>>
+{
+    using type = List<Ts..., Us...>;
+};
+
 template<typename TypeList, typename T>
 struct push_back;
 
@@ -197,6 +205,65 @@ struct apply<List<Ts...>, Other>
 {
     using type = Other<Ts...>;
 };
+
+
+template<typename TypeList>
+struct back;
+
+template<typename Head, typename ... Rest>
+struct back<List<Head, Rest...>>
+{
+    using type = back<List<Rest...>>::type;
+};
+
+template<typename Head>
+struct back<List<Head>>
+{
+    using type = Head;
+};
+
+
+/*
+Returns true if for each index i in [0, len(List1)],
+Predicate(List1[i], List2[i]) is true
+*/
+template<template <typename, typename> typename Predicate, 
+    typename List1, 
+    typename List2>
+struct prefix_predicate;
+
+template<template <typename, typename> typename Predicate,
+    typename Head1,
+    typename ... Rest1,
+    typename Head2,
+    typename ... Rest2>
+struct prefix_predicate<
+    Predicate, 
+    List<Head1, Rest1...>, 
+    List<Head2, Rest2...>>
+{
+    static constexpr bool value = 
+        Predicate<Head1, Head2>::value
+        && prefix_predicate<Predicate,List<Rest1...>, List<Rest2...>>::value;
+};
+
+template<template <typename, typename> typename Predicate>
+struct prefix_predicate<Predicate, List<>, List<>>
+{
+    static constexpr bool value = true;
+};
+template<template <typename, typename> typename Predicate, typename ... Ts>
+struct prefix_predicate<Predicate, List<>, List<Ts...>>
+{
+    static constexpr bool value = true;
+};
+
+template<template <typename, typename> typename Predicate, typename ... Ts>
+struct prefix_predicate<Predicate, List<Ts...>, List<>>
+{
+    static constexpr bool value = false;
+};
+
 
 
 }; // struct list_traits 

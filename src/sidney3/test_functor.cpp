@@ -1,41 +1,65 @@
 #include <sidney3/functor.h>
+#include <sidney3/variant.h>
+#include <sidney3/operators.h>
+#include <sidney3/functor.h>
+
 #include <cassert>
+#include <iostream>
 
-using namespace sidney3;
-
-void test_base_functionality()
+void functor_base_functionality_test()
 {
-    static constexpr int INT_RES = 0, CHAR_RES = 1;
+    static constexpr int 
+        INT_RESPONSE = 0,
+        CHAR_RESPONSE = 1,
+        DOUBLE_RESPONSE = 2,
+        AUTO_RESPONSE = 3;
 
-    auto int_pred = [](int)
-    {
-        return INT_RES;
-    };
+    auto functor = 
+        [](int ){return INT_RESPONSE;} 
+        | [](char ){return CHAR_RESPONSE;}
+        | [](double ){return DOUBLE_RESPONSE;}
+        | [](auto) {return AUTO_RESPONSE;};
 
-    auto char_pred = [](char)
-    {
-        return CHAR_RES;
-    };
+    assert(functor(2) == INT_RESPONSE);
+    assert(functor('a') == CHAR_RESPONSE);
+    assert(functor(2.2) == DOUBLE_RESPONSE);
+    assert(functor("ASBC") == AUTO_RESPONSE);
 
-    functor<decltype(int_pred), decltype(char_pred)> f{int_pred, char_pred};
-    assert(f(5) == INT_RES);
-    assert(f('a') == CHAR_RES);
-
+    struct test_type {};
+    test_type ts{};
+    assert(functor(ts) == AUTO_RESPONSE);
 }
 
-void test_weird_signatures()
+/*
+    Passing lambdas with signatures that don't quite
+    match the inputted types still works
+*/
+void reference_args()
 {
+    static constexpr int 
+        INT_RESPONSE = 0,
+        CHAR_RESPONSE = 1,
+        DOUBLE_RESPONSE = 2,
+        AUTO_RESPONSE = 3;
 
-    auto int_pred = [](const int&)
-    {
-        return true;
-    };
-    functor<decltype(int_pred)> f(int_pred);
-    // will still bind even though non-exact signature match
-    assert(f(2));
+    auto functor = 
+        [](const int& ){return INT_RESPONSE;} 
+        | [](const char& ){return CHAR_RESPONSE;}
+        | [](const double& ){return DOUBLE_RESPONSE;}
+        | [](auto&&) {return AUTO_RESPONSE;};
+
+
+    assert(functor(2) == INT_RESPONSE);
+    assert(functor('a') == CHAR_RESPONSE);
+    assert(functor(2.2) == DOUBLE_RESPONSE);
+    assert(functor("ASBC") == AUTO_RESPONSE);
+
+    struct test_type {};
+    test_type ts{};
+    assert(functor(ts) == AUTO_RESPONSE);
 }
 void test_functor()
 {
-    test_base_functionality();
-    test_weird_signatures();
+    functor_base_functionality_test();
+    reference_args();
 }

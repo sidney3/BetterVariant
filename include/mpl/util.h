@@ -114,4 +114,10 @@ struct find_if<Predicate>
     using type = types::type_not_found;
 };
 
+template<typename T>
+struct type_wrapper
+{
+    using type = T;
+};
+
 } // namespace mpl

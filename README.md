@@ -10,12 +10,12 @@ sidney3::variant<int, double, string> b = "Hello World";
     [](const int obj)
     {
         std::cout << "object is an integer\n";
-    },
-    [](const double obj)
+    }
+    >> [](const double obj)
     {
         std::cout << "object is a double\n";
-    },
-    [](const string obj)
+    }
+    >> [](const string obj)
     {
         std::cout << "object is a string\n";
     })();
@@ -28,16 +28,16 @@ sidney3::variant<int, double, string> b = "Hello World";
 ```cpp
 sidney3::variant<int, double, string> b = "Hello World";
 
-auto fn = b >> 
-    [](const int obj)
+auto fn = b  
+    >> [](const int obj)
     {
         std::cout << "object is an integer\n";
-    },
-    [](const double obj)
+    }
+    >> [](const double obj)
     {
         std::cout << "object is a double\n";
-    },
-    [](const string obj)
+    }
+    >> [](const string obj)
     {
         std::cout << "object is a string\n";
     };
@@ -106,7 +106,3 @@ std::visit(overload{
 
 
 ## Impl
-
-Each functor object contains a unique tuple of its elements
-
-Unique tuple can also be constructed from a smaller unique tuple and the missing elements (provided in order).
