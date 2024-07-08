@@ -32,7 +32,7 @@ static_assert(!list_traits<tuple>::set_equals<w1,w3>::value);
 static_assert(!list_traits<tuple>::set_equals<w2,w3>::value);
 
 /*
-Test append
+append
 */
 
 using v1 = tuple<int,double,float>;
@@ -76,7 +76,8 @@ static_assert(list_traits<tuple>::equals<
                 >::value);
 
 /*
-Test prefix_predicate
+prefix_predicate
+
 */
 
 using l1 = list<int,int,double,float>;
@@ -88,3 +89,7 @@ static_assert(!list_traits<list>::prefix_predicate<std::is_same,l1,l2>::value);
 static_assert(list_traits<list>::prefix_predicate<std::is_same,l1,l1>::value);
 static_assert(!list_traits<list>::prefix_predicate<std::is_same,l3,l1>::value);
 static_assert(list_traits<list>::prefix_predicate<std::is_same,list<>,l1>::value);
+
+/*
+
+*/

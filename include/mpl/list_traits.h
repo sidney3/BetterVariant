@@ -3,17 +3,83 @@
 #include <mpl/types.h>
 #include <mpl/pair.h>
 
-/*
-    Standard definitions for a compile time List (of types)
-*/
 
 namespace mpl
 {
+/*
+To avoid forcing a user to use, say, std::tuple as their
+type list of choice we template the template library in
+terms of some List template.
+*/
 template<template<typename...> typename List>
 struct list_traits 
 {
+
+/*
+Interface of all the operations we support.
+
+We use template inference to extract the items
+of each Typelist
+*/
 template<typename TypeList, typename T>
 struct push_front;
+
+template<typename TypeList, typename T>
+struct push_back;
+
+template<typename List1, typename List2>
+struct concat;
+
+template<typename TypeList>
+struct size;
+
+template<typename TypeList, typename Comparator>
+struct find_if;
+
+template<typename TypeList, typename T>
+struct contains;
+
+// return the front element.
+template<typename TypeList>
+struct head;
+
+template<typename TypeList>
+struct back;
+
+template<typename TypeList, template<typename> typename Unary>
+struct transform;
+
+// strict equality between List1 and List2
+// @todo make this take a predicate
+template<typename List1, typename List2>
+struct equals;
+
+// set equality between List1 and List2. Informally
+// returns if set(List1) == set(List2). Formally
+// means that for each element in List1 that element
+// is in list2
+template<typename TypeList1, typename TypeList2>
+struct set_equals;
+
+template<typename TypeList, long Index>
+struct at;
+
+template<typename TypeList>
+struct enumerate;
+/*
+Given two lists L1 and L2 and a predicate P,
+if for each index i of L1, 
+
+P(L1[i], L2[i])
+*/
+template<template <typename, typename> typename Predicate, 
+    typename List1, 
+    typename List2>
+struct prefix_predicate;
+
+/*
+IMPLEMENTATIONS:
+*/
 
 template<typename ... Ts, typename T>
 struct push_front<List<Ts...>, T>
@@ -21,16 +87,11 @@ struct push_front<List<Ts...>, T>
     using type = List<T, Ts...>;
 };
 
-template<typename List1, typename List2>
-struct concat;
 template<typename ... Ts, typename ... Us>
 struct concat<List<Ts...>, List<Us...>>
 {
     using type = List<Ts..., Us...>;
 };
-
-template<typename TypeList, typename T>
-struct push_back;
 
 template<typename ... Ts, typename T>
 struct push_back<List<Ts...>, T>
@@ -54,8 +115,6 @@ struct pop_back<List<Head>>
     using type = List<>;
 };
 
-template<typename TypeList>
-struct size;
 
 template<typename Head, typename ... Rest>
 struct size<List<Head, Rest...>>
@@ -70,8 +129,6 @@ struct size<List<>>
     static constexpr size_t value = 0;
 };
 
-template<typename TypeList, typename T>
-struct contains;
 
 template<typename T, typename Head, typename ... Rest>
 struct contains<List<Head, Rest...>, T>
@@ -86,8 +143,6 @@ struct contains<List<>, T>
     static constexpr bool value = false;
 };
 
-template<typename List1, typename List2>
-struct equals;
 
 template<typename ... Ts, typename ... Us>
 struct equals<List<Ts...>, List<Us...>>
@@ -97,8 +152,6 @@ struct equals<List<Ts...>, List<Us...>>
         && (contains<List<Us...>, Ts>::value &&...);
 };
 
-template<typename TypeList, typename Comparator>
-struct find_if;
 
 template<typename Head, typename ... Rest, typename Comparator>
 struct find_if<List<Head, Rest...>, Comparator>
@@ -119,8 +172,6 @@ struct find_if<List<>, Comparator>
     using type = types::type_not_found;
 };
 
-template<typename TypeList, long I>
-struct at;
 
 template<typename Head, typename ... Rest, long I>
 struct at<List<Head, Rest...>, I>
@@ -136,17 +187,11 @@ struct at<List<Head, Rest...>, 0>
 };
 
 
-template<typename TypeList>
-struct head;
-
 template<typename Head, typename ... Rest>
 struct head<List<Head, Rest...>>
 {
     using type = Head;
 };
-
-template<typename TypeList, template<typename> typename Unary>
-struct transform;
 
 template<typename ... Ts, template<typename> typename Unary>
 struct transform<List<Ts...>, Unary>
@@ -154,8 +199,6 @@ struct transform<List<Ts...>, Unary>
     using type = List<typename Unary<Ts>::type...>;
 };
 
-template<typename TypeList1, typename TypeList2>
-struct set_equals;
 
 template<typename ... Ts, typename ... Us>
 struct set_equals<List<Ts...>, List<Us...>>
@@ -165,9 +208,6 @@ struct set_equals<List<Ts...>, List<Us...>>
         && (contains<List<Us...>, Ts>::value&&...);
 };
 
-
-template<typename TypeList>
-struct enumerate;
 
 template<typename ... Ts>
 struct enumerate<List<Ts...>>
@@ -207,9 +247,6 @@ struct apply<List<Ts...>, Other>
 };
 
 
-template<typename TypeList>
-struct back;
-
 template<typename Head, typename ... Rest>
 struct back<List<Head, Rest...>>
 {
@@ -227,10 +264,6 @@ struct back<List<Head>>
 Returns true if for each index i in [0, len(List1)],
 Predicate(List1[i], List2[i]) is true
 */
-template<template <typename, typename> typename Predicate, 
-    typename List1, 
-    typename List2>
-struct prefix_predicate;
 
 template<template <typename, typename> typename Predicate,
     typename Head1,
