@@ -27,7 +27,7 @@ set(SOURCE_FILES    src/sidney3/test_functor.cpp
                     
                     )
 
-add_compile_options(-Wall -Wextra -Wpedantic -std=c++20 -g)
+add_compile_options(-Wall -Wextra -Wpedantic -std=c++2b -g)
 
 add_executable(Main src/main.cpp ${HEADER_FILES} ${SOURCE_FILES})
 

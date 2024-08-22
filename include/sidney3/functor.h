@@ -1,56 +1,93 @@
 #pragma once
-#include <optional>
+
 #include <utility>
 
 #include <mpl/list.h>
 #include <mpl/list_traits.h>
 #include <mpl/unary_function_traits.h>
 
+#include <sidney3/guarded_return.h>
 #include <sidney3/tags.h>
 
 namespace sidney3 {
+
+/*
+   A function with return := GuardedReturn<T> still gets counted as being of
+   return type T (because we will never return GuardedReturn<T> to a client)
+*/
+template <typename Unary> struct UnaryReturnType {
+private:
+  using raw_return_type = mpl::unary_traits<Unary>::return_type;
+
+public:
+  using type = stripGuardedReturn<raw_return_type>::type;
+};
+
 template <typename FunctorType> struct FunctorTypeTraits;
 
 using lst = mpl::list_traits<mpl::list>;
 
-// base case
-template <typename T, typename U> struct Functor : T, U {
-  static_assert(std::is_same_v<typename mpl::unary_traits<T>::return_type,
-                               typename mpl::unary_traits<U>::return_type>);
-  template <typename X> mpl::unary_traits<U>::return_type operator()(X &&x) {
-    if constexpr (mpl::is_exact_invocable<T, X>::value) {
-      return T::operator()(std::forward<X>(x));
+/*
+  Handle the shared logic: each functor is defined only in terms of
+  its child lambdas, and so we let a single class handle this logic
+  and then the functors can get recursively generated.
+*/
+template <typename Child>
+struct FunctorImpl : FunctorTypeTraits<Child>::my_type,
+                     FunctorTypeTraits<Child>::child_type {
+
+  using child_type = FunctorTypeTraits<Child>::child_type;
+  using base_type = FunctorTypeTraits<Child>::my_type;
+  using return_type = FunctorTypeTraits<Child>::return_type;
+
+  using child_type::operator();
+  using base_type::operator();
+
+  template <typename X> return_type operator()(X &&x) {
+    if constexpr (FunctorTypeTraits<child_type>::template is_exact_invocable<
+                      X>::value) {
+      return child_type::operator()(std::forward<X>(x));
     } else {
-      static_assert(mpl::is_exact_invocable<U, X>::value);
-      return U::operator()(std::forward<X>(x));
+      static_assert(mpl::is_exact_invocable<base_type, X>::value);
+      return base_type::operator()(std::forward<X>(x));
     }
   }
-  using tag = functor_tag;
+
+  template <typename Arg1, typename Arg2>
+    requires(std::is_constructible_v<child_type, Arg1> &&
+             std::is_constructible_v<base_type, Arg2>)
+  FunctorImpl(Arg1 &&arg1, Arg2 &&arg2)
+      : base_type{std::forward<Arg2>(arg2)},
+        child_type{std::forward<Arg1>(arg1)} {}
 };
 
-// recursive case
+// base case
+template <typename T, typename U> struct Functor : FunctorImpl<Functor<T, U>> {
+  static_assert(std::is_same_v<typename UnaryReturnType<T>::type,
+                               typename UnaryReturnType<U>::type>);
+
+  using self = Functor<T, U>;
+  using tag = functor_tag;
+  using FunctorImpl<self>::operator();
+
+  template <typename... Args>
+  Functor(Args &&...args) : FunctorImpl<self>{std::forward<Args>(args)...} {}
+};
+
 template <typename T, typename V, typename U>
-struct Functor<Functor<T, V>, U> : Functor<T, V>, U {
+struct Functor<Functor<T, V>, U> : FunctorImpl<Functor<Functor<T, V>, U>> {
   using self = Functor<Functor<T, V>, U>;
 
-  static_assert(std::is_same_v<typename mpl::unary_traits<T>::return_type,
-                               typename mpl::unary_traits<V>::return_type>);
-  static_assert(std::is_same_v<typename mpl::unary_traits<V>::return_type,
-                               typename mpl::unary_traits<U>::return_type>);
+  static_assert(std::is_same_v<typename UnaryReturnType<T>::type,
+                               typename UnaryReturnType<V>::type>);
+  static_assert(std::is_same_v<typename UnaryReturnType<V>::type,
+                               typename UnaryReturnType<U>::type>);
 
-  template <typename X> mpl::unary_traits<U>::return_type operator()(X &&x) {
-    if constexpr (FunctorTypeTraits<Functor<T, V>>::template is_exact_invocable<
-                      X>::value) {
-      return Functor<T, V>::operator()(std::forward<X>(x));
-    } else {
-      static_assert(mpl::is_exact_invocable<U, X>::value);
-      return U::operator()(std::forward<X>(x));
-    }
-  }
+  using tag = functor_tag;
+  using FunctorImpl<self>::operator();
 
-  using T::operator();
-  using V::operator();
-  using U::operator();
+  template <typename... Args>
+  Functor(Args &&...args) : FunctorImpl<self>{std::forward<Args>(args)...} {}
 };
 
 template <typename Base> struct FunctorTraitsImpl {
@@ -62,13 +99,30 @@ template <typename Base> struct FunctorTraitsImpl {
   };
 };
 
+/*
+  Each FunctorTypeTraits takes one of the different types of functors:
+  lambda, binary functor, and recursive binary functor. Because each
+  is layed out roughly the same way, with some number of functions that
+  correspond to it, and some number of input arguments, we factor out the
+  actual functionality to a seperate FunctorTraitsImpl
+*/
+template <typename T>
+struct FunctorTypeTraits : FunctorTraitsImpl<FunctorTypeTraits<T>> {
+  using arg_types = mpl::unary_traits<T>::arg_type;
+  using return_type = UnaryReturnType<T>::type;
+  using raw_functions = mpl::list<T>;
+  using my_type = T;
+};
+
 template <typename T, typename U>
 struct FunctorTypeTraits<Functor<T, U>>
     : FunctorTraitsImpl<FunctorTypeTraits<Functor<T, U>>> {
   using arg_types = mpl::list<typename mpl::unary_traits<T>::arg_type,
                               typename mpl::unary_traits<U>::arg_type>;
-  using return_type = mpl::unary_traits<T>::return_type;
+  using return_type = UnaryReturnType<T>::type;
   using raw_functions = mpl::list<T, U>;
+  using my_type = U;
+  using child_type = T;
 };
 
 template <typename T, typename V, typename U>
@@ -78,6 +132,8 @@ private:
   using child_functor = Functor<T, V>;
 
 public:
+  using my_type = U;
+  using child_type = Functor<T, V>;
   using arg_types = mpl::list_traits<mpl::list>::push_back<
       typename FunctorTypeTraits<child_functor>::arg_types,
       typename mpl::unary_traits<U>::arg_type>::type;

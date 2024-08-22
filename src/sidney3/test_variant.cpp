@@ -74,6 +74,13 @@ void nested_test() {
   assert(res == B_RESPONSE);
 }
 
+/* void no_compile_test() { */
+/*    */
+/*   sidney3::variant<a, b, c> nested = b{}; */
+/*  */
+/*   nested || [](b){} | [](a){}; */
+/* } */
+
 void test_variant() {
   base_functionality_test();
   nested_test();

@@ -25,6 +25,14 @@ b ||
 >object is a string
 ```
 
+## Guarded matching
+
+If you provide a lambda `f(U) -> sidney3::GuardedReturn<T>`, if your variant holds a value of type `U` but `f(U) = std::nullopt`, this case will be ignored.
+
+Note that `GuardedReturn<T>` inherits from `std::optional<T>`. We just make the types different so that we can have `std::optional<T>` as a type in our variant.
+
+Also Note that it is undefined behavior to have a `guarded_return<T>` as one of your possible variant types.
+
 ## Additional Details
 
 The `|` operator joins two callables into an `overloaded` type, and the `||` operator joins a `variant<Ts...>` with a callable type that covers all `Ts...`.

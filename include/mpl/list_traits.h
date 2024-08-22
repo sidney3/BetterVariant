@@ -37,6 +37,8 @@ template <template <typename...> typename List> struct list_traits {
   template <typename TypeList, template <typename> typename Unary>
   struct transform;
 
+  template <typename TypeList, template <typename> typename Pred> struct filter;
+
   template <typename TypeList, template <typename> typename Pred> struct all_of;
 
   template <typename TypeList, template <typename> typename Pred> struct any_of;
@@ -139,6 +141,21 @@ template <template <typename...> typename List> struct list_traits {
 
   template <typename Head, typename... Rest> struct head<List<Head, Rest...>> {
     using type = Head;
+  };
+
+  template <typename Head, typename... Rest, template <typename> typename Pred>
+  struct filter<List<Head, Rest...>, Pred> {
+  private:
+    using filteredRest = filter<List<Rest...>, Pred>::type;
+
+  public:
+    using type =
+        std::conditional_t<Pred<Head>::value, push_front<filteredRest, Head>,
+                           std::type_identity<filteredRest>>::type;
+  };
+
+  template <template <typename> typename Pred> struct filter<List<>, Pred> {
+    using type = List<>;
   };
 
   template <typename... Ts, template <typename> typename Unary>

@@ -7,8 +7,7 @@
 using lst = mpl::list_traits<mpl::list>;
 
 template <typename... Ts, typename Functor>
-sidney3::FunctorTypeTraits<Functor>::return_type
-operator||(sidney3::variant<Ts...> &variant, Functor &func) {
+auto operator||(sidney3::variant<Ts...> &variant, Functor &func) {
   using decayed_args = typename lst::transform<
       typename sidney3::FunctorTypeTraits<Functor>::arg_types,
       std::decay>::type;
@@ -25,8 +24,7 @@ operator||(sidney3::variant<Ts...> &variant, Functor &func) {
 }
 
 template <typename... Ts, typename Functor>
-sidney3::FunctorTypeTraits<Functor>::return_type
-operator||(sidney3::variant<Ts...> &variant, Functor &&func) {
+auto operator||(sidney3::variant<Ts...> &variant, Functor &&func) {
   // input args to all functions in Functor
   using decayed_args = typename lst::transform<
       typename sidney3::FunctorTypeTraits<Functor>::arg_types,

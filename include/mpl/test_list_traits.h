@@ -7,6 +7,8 @@
 using namespace mpl;
 using std::tuple;
 
+using lst = mpl::list_traits<mpl::list>;
+
 /*
 equals (done first as this is used in other tests)
 */
@@ -64,6 +66,18 @@ static_assert(list_traits<tuple>::equals<
               list_traits<tuple>::transform<nums, AddOne>::type>::value);
 
 } // namespace transform_test
+
+namespace filter_test {
+/*
+   Filter
+*/
+template <typename T> using isChar = std::is_same<T, char>;
+
+using v1 = mpl::list<char, char, int, char>;
+using allChars = mpl::list<char, char, char>;
+static_assert(lst::equals<allChars, lst::filter<v1, isChar>::type>::value);
+
+} // namespace filter_test
 
 namespace enumerate_test {
 /*
