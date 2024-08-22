@@ -7,36 +7,11 @@
 using lst = mpl::list_traits<mpl::list>;
 
 template <typename... Ts, typename Functor>
-auto operator||(sidney3::variant<Ts...> &variant, Functor &func) {
-  using decayed_args = typename lst::transform<
-      typename sidney3::FunctorTypeTraits<Functor>::arg_types,
-      std::decay>::type;
-
-  static_assert(lst::set_equals<
-
-                    decayed_args, mpl::list<std::decay_t<Ts>...>
-
-                    >::value
-
-                || lst::contains<decayed_args, mpl::types::auto_arg>::value);
-
-  return visit(variant, func);
-}
-
-template <typename... Ts, typename Functor>
-auto operator||(sidney3::variant<Ts...> &variant, Functor &&func) {
+auto operator||(sidney3::variant<Ts...> &variant, const Functor &func) {
   // input args to all functions in Functor
-  using decayed_args = typename lst::transform<
-      typename sidney3::FunctorTypeTraits<Functor>::arg_types,
-      std::decay>::type;
-
-  static_assert(lst::set_equals<
-
-                    decayed_args, mpl::list<std::decay_t<Ts>...>
-
-                    >::value
-
-                || lst::contains<decayed_args, mpl::types::auto_arg>::value);
+  /* using functorTraits = sidney3::FunctorTypeTraits<Functor>; */
+  /*  */
+  /* static_assert((functorTraits::template CoversInput<Ts>::value && ...)); */
 
   return visit(variant, func);
 }

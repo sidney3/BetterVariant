@@ -19,7 +19,9 @@ set(HEADER_FILES include/sidney3/variant.h
                 include/mpl/test_function_traits.h
                 include/mpl/types.h
                 include/mpl/unary_function_traits.h
-                include/mpl/test_unary_function_traits.h)
+                include/mpl/test_unary_function_traits.h
+                include/mpl/functional.h
+                )
 
 set(SOURCE_FILES    src/sidney3/test_functor.cpp
                     src/sidney3/test_variant.cpp
