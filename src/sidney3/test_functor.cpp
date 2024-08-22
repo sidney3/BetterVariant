@@ -1,6 +1,5 @@
 #include <sidney3/functor.h>
 #include <sidney3/operators.h>
-#include <sidney3/variant.h>
 
 #include <cassert>
 

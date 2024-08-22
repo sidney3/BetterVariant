@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mpl/list.h>
+#include <type_traits>
 
 namespace mpl {
 

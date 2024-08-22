@@ -4,7 +4,7 @@
 #include <optional>
 #include <sidney3/guarded_return.h>
 #include <sidney3/tags.h>
-#include <sidney3/variant.h>
+#include <sidney3/variant_impl.h>
 
 #include <stdexcept>
 
@@ -39,7 +39,8 @@ struct visit_impl<mpl::list<Ts...>, mpl::list<Head, Rest...>, Functor> {
 
 template <typename... Ts, typename Functor>
 struct visit_impl<mpl::list<Ts...>, mpl::list<>, Functor> {
-  static sidney3::FunctorTypeTraits<Functor>::return_type apply(...) {
+  template <typename... Args>
+  static sidney3::FunctorTypeTraits<Functor>::return_type apply(Args &&...) {
     throw std::runtime_error{"FATAL: case not matched"};
   }
 };

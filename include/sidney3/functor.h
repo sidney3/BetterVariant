@@ -2,7 +2,6 @@
 
 #include <utility>
 
-#include <mpl/functional.h>
 #include <mpl/list.h>
 #include <mpl/list_traits.h>
 #include <mpl/unary_function_traits.h>
@@ -116,20 +115,17 @@ public:
   private:
     template <typename Fn> struct isGuardedFunction {
       static constexpr bool value =
-          isGuardedFunction<typename mpl::unary_traits<Fn>::return_type>::value;
+          isGuardedReturn<typename mpl::unary_traits<Fn>::return_type>::value;
     };
 
     template <typename Fn>
     using isInvocableWithT = mpl::is_exact_invocable<Fn, T>;
 
     template <typename Fn> struct functionCoversT {
-      static constexpr bool value = isInvocableWithT<Fn>::value;
-      //! isGuardedFunction<Fn>::value;
+      static constexpr bool value =
+          isInvocableWithT<Fn>::value && !isGuardedFunction<Fn>::value;
     };
-    /* template<typename Fn> */
-    /* using functionCoversT = mpl::And< */
-    /*   isInvocableWithT, mpl::Negation<isGuardedFunction>:: template type */
-    /* >::type; */
+
   public:
     static constexpr bool value =
         lst::any_of<typename Child::raw_functions, functionCoversT>::value;

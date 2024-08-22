@@ -1,7 +1,5 @@
 #include <cassert>
 
-#include <sidney3/guarded_return.h>
-#include <sidney3/operators.h>
 #include <sidney3/variant.h>
 
 struct a {};
