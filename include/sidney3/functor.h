@@ -45,13 +45,29 @@ struct FunctorImpl : FunctorTypeTraits<Child>::my_type,
   using base_type::operator();
 
   template <typename X> return_type operator()(X &&x) {
+
+    static constexpr bool childInvocable =
+        FunctorTypeTraits<child_type>::template is_exact_invocable<X>::value;
+    static constexpr bool baseInvocable =
+        FunctorTypeTraits<base_type>::template is_exact_invocable<X>::value;
+
+    static_assert(childInvocable || baseInvocable);
+
     if constexpr (FunctorTypeTraits<child_type>::template is_exact_invocable<
                       X>::value) {
-      return child_type::operator()(std::forward<X>(x));
-    } else {
-      static_assert(mpl::is_exact_invocable<base_type, X>::value);
+      auto res = child_type::operator()(x);
+
+      if (hasValue(res)) {
+        return getValue(res);
+      }
+    }
+
+    if constexpr (FunctorTypeTraits<base_type>::template is_exact_invocable<
+                      X>::value) {
       return base_type::operator()(std::forward<X>(x));
     }
+
+    std::unreachable();
   }
 
   template <typename Arg1, typename Arg2>

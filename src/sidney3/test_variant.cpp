@@ -1,8 +1,8 @@
 #include <cassert>
 
+#include <sidney3/guarded_return.h>
 #include <sidney3/operators.h>
 #include <sidney3/variant.h>
-#include <string>
 
 struct a {};
 struct b {};
@@ -74,6 +74,21 @@ void nested_test() {
   assert(res == B_RESPONSE);
 }
 
+void guarded_return_test() {
+  sidney3::variant<int, char> v = 0;
+
+  static constexpr int INT_RETURN = 0, AUTO_RETURN = 1;
+
+  int res = v || [](int x) -> sidney3::GuardedReturn<int> {
+    if (x == 0) {
+      return std::nullopt;
+    }
+    return INT_RETURN;
+  } | [](auto &&) { return AUTO_RETURN; };
+
+  assert(res == AUTO_RETURN);
+}
+
 /* void no_compile_test() { */
 /*    */
 /*   sidney3::variant<a, b, c> nested = b{}; */
@@ -85,4 +100,5 @@ void test_variant() {
   base_functionality_test();
   nested_test();
   auto_test();
+  guarded_return_test();
 }

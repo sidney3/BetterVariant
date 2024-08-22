@@ -2,6 +2,7 @@
 
 #include <mpl/list.h>
 #include <optional>
+#include <sidney3/guarded_return.h>
 #include <sidney3/tags.h>
 #include <sidney3/variant.h>
 
@@ -18,12 +19,6 @@ match(Variant &variant, Functor fn) {
     return std::nullopt;
   }
   return fn(std::get<T>(variant));
-  /* if constexpr(is_optional<T>::value) */
-  /* { */
-  /*   using BaseT = std::optional<T>::value_type; */
-  /*  */
-  /*  */
-  /* } */
 }
 
 template <typename VariantList, typename CurrList, typename Functor>
