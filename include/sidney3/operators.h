@@ -8,10 +8,9 @@ using lst = mpl::list_traits<mpl::list>;
 
 template <typename... Ts, typename Functor>
 auto operator||(sidney3::variant<Ts...> &variant, const Functor &func) {
-  // input args to all functions in Functor
-  /* using functorTraits = sidney3::FunctorTypeTraits<Functor>; */
-  /*  */
-  /* static_assert((functorTraits::template CoversInput<Ts>::value && ...)); */
+  static_assert(
+      (sidney3::FunctorTypeTraits<Functor>::template CoversInput<Ts>::value &&
+       ...));
 
   return visit(variant, func);
 }

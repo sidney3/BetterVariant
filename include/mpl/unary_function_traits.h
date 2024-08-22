@@ -60,8 +60,8 @@ template <typename F, typename T> struct is_exact_invocable {
   static constexpr bool value =
       is_unary_auto<F>::value ||
       (std::is_invocable_v<F, T> &&
-       std::is_same_v<std::decay_t<typename unary_traits<F>::arg_type>,
-                      std::decay_t<T>>);
+       std::is_same_v<std::remove_cvref_t<typename unary_traits<F>::arg_type>,
+                      std::remove_cvref_t<T>>);
 };
 
 } // namespace mpl

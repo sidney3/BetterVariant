@@ -43,7 +43,7 @@ void base_functionality_test() {
   assert(res == A_RESPONSE);
 
   res = v || [](b) { return B_RESPONSE; } | [](a) { return A_RESPONSE; } |
-                 [](c &) { return C_RESPONSE; };
+                 [](const c &) { return C_RESPONSE; };
 
   assert(res == A_RESPONSE);
 

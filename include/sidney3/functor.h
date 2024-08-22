@@ -2,10 +2,10 @@
 
 #include <utility>
 
+#include <mpl/functional.h>
 #include <mpl/list.h>
 #include <mpl/list_traits.h>
 #include <mpl/unary_function_traits.h>
-#include <mpl/functional.h>
 
 #include <sidney3/guarded_return.h>
 #include <sidney3/tags.h>
@@ -96,29 +96,27 @@ public:
   /*
     Returns true if the functor can be applied to a variant including the type T
   */
-  template<typename T>
-  struct CoversInput 
-  {
+  template <typename T> struct CoversInput {
   private:
-    template<typename Fn> struct isGuardedFunction {
-      static constexpr bool value = isGuardedFunction<typename mpl::unary_traits<Fn>::return_type>::value;
+    template <typename Fn> struct isGuardedFunction {
+      static constexpr bool value =
+          isGuardedFunction<typename mpl::unary_traits<Fn>::return_type>::value;
     };
 
-    template<typename Fn>
-    using isInvocableWithT = mpl::is_exact_invocable<Fn, std::remove_cvref_t<T>>;
+    template <typename Fn>
+    using isInvocableWithT = mpl::is_exact_invocable<Fn, T>;
 
-    template<typename Fn>
-    struct functionCoversT
-    {
-      static constexpr bool value = isInvocableWithT<Fn>::value && !isGuardedFunction<Fn>::value;
+    template <typename Fn> struct functionCoversT {
+      static constexpr bool value = isInvocableWithT<Fn>::value;
+      //! isGuardedFunction<Fn>::value;
     };
     /* template<typename Fn> */
     /* using functionCoversT = mpl::And< */
     /*   isInvocableWithT, mpl::Negation<isGuardedFunction>:: template type */
     /* >::type; */
   public:
-
-    static constexpr bool value = lst::any_of<typename Child::raw_functions, functionCoversT>::value;
+    static constexpr bool value =
+        lst::any_of<typename Child::raw_functions, functionCoversT>::value;
   };
 
   template <typename K> struct is_exact_invocable {
@@ -127,7 +125,6 @@ public:
     static constexpr bool value =
         lst::any_of<typename Child::raw_functions, is_invokable>::value;
   };
-
 };
 
 /*
@@ -139,7 +136,6 @@ public:
 */
 template <typename T>
 struct FunctorTypeTraits : FunctorTraitsImpl<FunctorTypeTraits<T>> {
-  using self = FunctorTypeTraits<T>;
   using arg_types = mpl::unary_traits<T>::arg_type;
   using return_type = UnaryReturnType<T>::type;
   using raw_functions = mpl::list<T>;
@@ -149,7 +145,6 @@ struct FunctorTypeTraits : FunctorTraitsImpl<FunctorTypeTraits<T>> {
 template <typename T, typename U>
 struct FunctorTypeTraits<Functor<T, U>>
     : FunctorTraitsImpl<FunctorTypeTraits<Functor<T, U>>> {
-  using self = FunctorTypeTraits<Functor<T,U>>;
   using arg_types = mpl::list<typename mpl::unary_traits<T>::arg_type,
                               typename mpl::unary_traits<U>::arg_type>;
   using return_type = UnaryReturnType<T>::type;
@@ -165,7 +160,6 @@ private:
   using child_functor = Functor<T, V>;
 
 public:
-  using self = Functor<Functor<T,V>, U>;
   using my_type = U;
   using child_type = Functor<T, V>;
   using arg_types = mpl::list_traits<mpl::list>::push_back<
