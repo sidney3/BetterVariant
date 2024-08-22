@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mpl/functional.h>
+#include <mpl/unary_function_traits.h>
 
 using namespace mpl;
 

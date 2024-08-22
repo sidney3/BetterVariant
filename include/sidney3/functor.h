@@ -3,7 +3,7 @@
 
 #include <mpl/list.h>
 #include <mpl/list_traits.h>
-#include <mpl/functional.h>
+#include <mpl/unary_function_traits.h>
 
 #include <sidney3/tags.h>
 

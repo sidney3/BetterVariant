@@ -20,8 +20,8 @@ set(HEADER_FILES include/sidney3/variant.h
                 include/mpl/types.h
                 include/mpl/util.h
                 include/mpl/test_util.h
-                include/mpl/functional.h
-                include/mpl/test_functional.h)
+                include/mpl/unary_function_traits.h
+                include/mpl/test_unary_function_traits.h)
 
 set(SOURCE_FILES    src/sidney3/test_functor.cpp
                     src/sidney3/test_variant.cpp
