@@ -74,7 +74,7 @@ struct Functor<Functor<T, V>, U> : Functor<T,V>, U
 template<typename T, typename U>
 struct FunctorTypeTraits<Functor<T,U>>
 {
-    using arg_types = list<typename mpl::unary_traits<T>::arg_type, 
+    using arg_types = mpl::list<typename mpl::unary_traits<T>::arg_type, 
                            typename mpl::unary_traits<U>::arg_type>;
     using return_type = mpl::unary_traits<T>::return_type;
 
@@ -89,7 +89,7 @@ struct FunctorTypeTraits<Functor<T,U>>
 template<typename T, typename V, typename U>
 struct FunctorTypeTraits<Functor<Functor<T,V>, U>>
 {
-    using arg_types = mpl::list_traits<list>::push_back<
+    using arg_types = mpl::list_traits<mpl::list>::push_back<
         typename FunctorTypeTraits<Functor<T,V>>::arg_types,
         typename mpl::unary_traits<U>::arg_type>::type;
     using return_type = FunctorTypeTraits<Functor<T,V>>::return_type;

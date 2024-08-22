@@ -15,6 +15,8 @@ set(HEADER_FILES include/sidney3/variant.h
                 include/mpl/list.h
                 include/mpl/list_traits.h
                 include/mpl/test_list_traits.h
+                include/mpl/function_traits.h
+                include/mpl/test_function_traits.h
                 include/mpl/types.h
                 include/mpl/util.h
                 include/mpl/test_util.h

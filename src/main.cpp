@@ -12,6 +12,6 @@ int main()
     test_functor();
     test_visit();
 
-    // this is the important test suite that verifies functionality
+    // this is the important test suite that verifies functionality of our variant
     test_variant();
 }

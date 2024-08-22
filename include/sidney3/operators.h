@@ -5,24 +5,25 @@
 #include <mpl/list_traits.h>
 
 
+using lst = mpl::list_traits<mpl::list>;
 
 template<typename ... Ts, typename Functor>
 sidney3::FunctorTypeTraits<Functor>::return_type
 operator|| (sidney3::variant<Ts...>& variant, Functor& func)
 {
     using decayed_args =
-            typename mpl::list_traits<list>::transform<
+            typename lst::transform<
                 typename sidney3::FunctorTypeTraits<Functor>::arg_types,
                 std::decay>::type;
 
-    static_assert(mpl::list_traits<list>::set_equals<
+    static_assert(lst::set_equals<
 
             decayed_args,
-            list<std::decay_t<Ts>...>
+            mpl::list<std::decay_t<Ts>...>
 
             >::value 
             
-            || mpl::list_traits<list>::contains<
+            || lst::contains<
                 decayed_args, 
                 mpl::types::auto_arg>::value);
 
@@ -35,18 +36,18 @@ operator|| (sidney3::variant<Ts...>& variant, Functor&& func)
 {
     // input args to all functions in Functor
     using decayed_args =
-            typename mpl::list_traits<list>::transform<
+            typename lst::transform<
                 typename sidney3::FunctorTypeTraits<Functor>::arg_types,
                 std::decay>::type;
 
-    static_assert(mpl::list_traits<list>::set_equals<
+    static_assert(lst::set_equals<
 
             decayed_args,
-            list<std::decay_t<Ts>...>
+            mpl::list<std::decay_t<Ts>...>
 
             >::value 
             
-            || mpl::list_traits<list>::contains<
+            || lst::contains<
                 decayed_args, 
                 mpl::types::auto_arg>::value);
 

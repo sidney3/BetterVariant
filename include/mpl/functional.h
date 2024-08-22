@@ -1,6 +1,8 @@
 #pragma once
 #include <type_traits>
 #include <mpl/list.h>
+#include <mpl/function_traits.h>
+#include <mpl/list_traits.h>
 #include <mpl/types.h>
 
 namespace mpl
@@ -19,47 +21,48 @@ struct is_unary_auto
 };
 
 
-template<typename T, bool IsAuto>
-struct unary_traits_impl;
 /*
    Given a unary function, returns its argument type
 */
 template<typename T>
-struct unary_traits_impl<T, true>
+struct generic_unary_traits
 {
     using arg_type = types::auto_arg;
     using return_type = std::invoke_result_t<T, int>;
 };
-template <typename T>
-struct unary_traits_impl<T, false>
-    : public unary_traits_impl<decltype(&T::operator()), false>
-{};
 
-template <typename ClassType, typename ReturnType, typename Args>
-struct unary_traits_impl<ReturnType(ClassType::*)(Args) const, false>
-    : public unary_traits_impl<ReturnType(Args), false>
-{};
-
-template<typename ReturnType, typename Arg>
-struct unary_traits_impl<ReturnType(*)(Arg), false>
-    : public unary_traits_impl<ReturnType(Arg), false>
-{};
-
-template<typename ReturnType, typename Arg>
-struct unary_traits_impl<ReturnType(Arg), false>
+template<typename T>
+struct non_generic_unary_traits
 {
-    using arg_type = Arg;
-    using return_type = ReturnType;
+    using lst = mpl::list_traits<mpl::list>;
+
+    using traits = mpl::function_traits<T>;
+
+    static_assert(lst::size<typename traits::arg_type>::value == 1);
+    using arg_type = lst::at<typename traits::arg_type, 0>::type;
+    using return_type = traits::return_type;
 };
 
 template<typename F>
 struct unary_traits
 {
+    struct non_generic_unary_traits_wrapper
+    {
+        using type = non_generic_unary_traits<F>;
+    };
+    struct generic_unary_traits_wrapper
+    {
+        using type = generic_unary_traits<F>;
+    };
     static constexpr bool is_auto =
         is_unary_auto<F>::value;
 
-    using arg_type = unary_traits_impl<F, is_auto>::arg_type;
-    using return_type = unary_traits_impl<F, is_auto>::return_type;
+    using traits = std::conditional_t<is_auto,
+          generic_unary_traits_wrapper,
+          non_generic_unary_traits_wrapper>::type;
+
+    using arg_type = traits::arg_type;
+    using return_type = traits::return_type;
 };
 
 
