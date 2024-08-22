@@ -18,8 +18,6 @@ set(HEADER_FILES include/sidney3/variant.h
                 include/mpl/function_traits.h
                 include/mpl/test_function_traits.h
                 include/mpl/types.h
-                include/mpl/util.h
-                include/mpl/test_util.h
                 include/mpl/unary_function_traits.h
                 include/mpl/test_unary_function_traits.h)
 

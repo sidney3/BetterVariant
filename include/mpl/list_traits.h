@@ -37,6 +37,10 @@ template <template <typename...> typename List> struct list_traits {
   template <typename TypeList, template <typename> typename Unary>
   struct transform;
 
+  template <typename TypeList, template <typename> typename Pred> struct all_of;
+
+  template <typename TypeList, template <typename> typename Pred> struct any_of;
+
   // strict equality between List1 and List2
   // @todo make this take a predicate
   template <typename List1, typename List2> struct equals;
@@ -208,6 +212,30 @@ template <template <typename...> typename List> struct list_traits {
 
   template <template <typename, typename> typename Predicate, typename... Ts>
   struct prefix_predicate<Predicate, List<Ts...>, List<>> {
+    static constexpr bool value = false;
+  };
+
+  template <typename Head, typename... Rest,
+            template <typename> typename Predicate>
+  struct all_of<List<Head, Rest...>, Predicate> {
+    static constexpr bool value =
+        Predicate<Head>::value && all_of<List<Rest...>, Predicate>::value;
+  };
+
+  template <template <typename> typename Predicate>
+  struct all_of<List<>, Predicate> {
+    static constexpr bool value = true;
+  };
+
+  template <typename Head, typename... Rest,
+            template <typename> typename Predicate>
+  struct any_of<List<Head, Rest...>, Predicate> {
+    static constexpr bool value =
+        Predicate<Head>::value || any_of<List<Rest...>, Predicate>::value;
+  };
+
+  template <template <typename> typename Predicate>
+  struct any_of<List<>, Predicate> {
     static constexpr bool value = false;
   };
 

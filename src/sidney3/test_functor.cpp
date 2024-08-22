@@ -3,7 +3,6 @@
 #include <sidney3/variant.h>
 
 #include <cassert>
-#include <iostream>
 
 void functor_base_functionality_test() {
   static constexpr int INT_RESPONSE = 0, CHAR_RESPONSE = 1, DOUBLE_RESPONSE = 2,

@@ -1,8 +1,8 @@
 #include <cassert>
-#include <string>
 
 #include <sidney3/operators.h>
 #include <sidney3/variant.h>
+#include <string>
 
 struct a {};
 struct b {};
@@ -62,7 +62,20 @@ void base_functionality_test() {
   assert((holds_b || functor) == B_RESPONSE);
   assert((holds_c || functor) == C_RESPONSE);
 }
+
+void nested_test() {
+  sidney3::variant<a, sidney3::variant<b, c>> nested = b{};
+
+  auto res = nested || [](a) {
+    return A_RESPONSE;
+  } | [](sidney3::variant<b, c> inner) {
+    return inner || [](b) { return B_RESPONSE; } | [](c) { return C_RESPONSE; };
+  };
+  assert(res == B_RESPONSE);
+}
+
 void test_variant() {
   base_functionality_test();
+  nested_test();
   auto_test();
 }

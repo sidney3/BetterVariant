@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <utility>
 
 #include <mpl/list.h>
@@ -9,6 +10,8 @@
 
 namespace sidney3 {
 template <typename FunctorType> struct FunctorTypeTraits;
+
+using lst = mpl::list_traits<mpl::list>;
 
 // base case
 template <typename T, typename U> struct Functor : T, U {
@@ -50,29 +53,38 @@ struct Functor<Functor<T, V>, U> : Functor<T, V>, U {
   using U::operator();
 };
 
-template <typename T, typename U> struct FunctorTypeTraits<Functor<T, U>> {
-  using arg_types = mpl::list<typename mpl::unary_traits<T>::arg_type,
-                              typename mpl::unary_traits<U>::arg_type>;
-  using return_type = mpl::unary_traits<T>::return_type;
-
+template <typename Base> struct FunctorTraitsImpl {
   template <typename K> struct is_exact_invocable {
-    static constexpr bool value = mpl::is_exact_invocable<T, K>::value ||
-                                  mpl::is_exact_invocable<U, K>::value;
+    template <typename T> using is_invokable = mpl::is_exact_invocable<T, K>;
+
+    static constexpr bool value =
+        lst::any_of<typename Base::raw_functions, is_invokable>::value;
   };
 };
 
-template <typename T, typename V, typename U>
-struct FunctorTypeTraits<Functor<Functor<T, V>, U>> {
-  using arg_types = mpl::list_traits<mpl::list>::push_back<
-      typename FunctorTypeTraits<Functor<T, V>>::arg_types,
-      typename mpl::unary_traits<U>::arg_type>::type;
-  using return_type = FunctorTypeTraits<Functor<T, V>>::return_type;
+template <typename T, typename U>
+struct FunctorTypeTraits<Functor<T, U>>
+    : FunctorTraitsImpl<FunctorTypeTraits<Functor<T, U>>> {
+  using arg_types = mpl::list<typename mpl::unary_traits<T>::arg_type,
+                              typename mpl::unary_traits<U>::arg_type>;
+  using return_type = mpl::unary_traits<T>::return_type;
+  using raw_functions = mpl::list<T, U>;
+};
 
-  template <typename K> struct is_exact_invocable {
-    static constexpr bool value =
-        mpl::is_exact_invocable<U, K>::value ||
-        FunctorTypeTraits<Functor<T, V>>::template is_exact_invocable<K>::value;
-  };
+template <typename T, typename V, typename U>
+struct FunctorTypeTraits<Functor<Functor<T, V>, U>>
+    : FunctorTraitsImpl<FunctorTypeTraits<Functor<Functor<T, V>, U>>> {
+private:
+  using child_functor = Functor<T, V>;
+
+public:
+  using arg_types = mpl::list_traits<mpl::list>::push_back<
+      typename FunctorTypeTraits<child_functor>::arg_types,
+      typename mpl::unary_traits<U>::arg_type>::type;
+  using return_type = FunctorTypeTraits<child_functor>::return_type;
+  using raw_functions =
+      lst::push_back<typename FunctorTypeTraits<child_functor>::raw_functions,
+                     U>::type;
 };
 
 } // namespace sidney3
